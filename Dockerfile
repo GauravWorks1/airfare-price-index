@@ -22,8 +22,9 @@ RUN playwright install chromium --with-deps
 # Copy application code
 COPY . .
 
-# Initialize DB and seed baseline data at build time
-RUN python reseed_live_only.py
+# Lightweight DB init (tables + DGCA reference data only)
+# Fare data is seeded on first app startup
+RUN python docker_init_db.py
 
 # Render uses $PORT env var
 EXPOSE ${PORT:-8000}
