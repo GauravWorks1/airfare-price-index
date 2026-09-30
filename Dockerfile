@@ -1,4 +1,4 @@
-# Multi-stage Dockerfile for National Airfare Price Index (APIx)
+# Dockerfile for National Airfare Price Index (APIx)
 # Optimized for Render.com free tier deployment
 FROM python:3.11-slim
 
@@ -12,10 +12,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy dependency specifications
+# Copy dependency specifications and install
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-RUN pip install --no-cache-dir gunicorn
+
+# Install Playwright browser binaries + OS deps
+RUN playwright install chromium --with-deps
 
 # Copy application code
 COPY . .
@@ -23,8 +25,8 @@ COPY . .
 # Initialize DB and seed baseline data at build time
 RUN python reseed_live_only.py
 
-# Render uses $PORT env var — expose it
+# Render uses $PORT env var
 EXPOSE ${PORT:-8000}
 
-# Use start.py to launch both FastAPI + Streamlit
+# Launch both FastAPI + Streamlit
 CMD ["python", "start.py"]
